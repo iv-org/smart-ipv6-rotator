@@ -18,7 +18,7 @@
 sudo python smart-ipv6-rotator.py clean
 ```
 
-Only works if the script did not crash.
+Only works if the script did not crash. But in case of a crash, in most case the system should auto rollback the changes.
 
 # Why does this need root privileges?
 
