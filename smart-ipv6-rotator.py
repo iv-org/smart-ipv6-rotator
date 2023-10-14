@@ -91,7 +91,10 @@ elif sys.argv[1] == "run":
 
     clean_previous_setup()
 
-    settings = run_path("./config.py")
+    try:
+        settings = run_path("./config.py")
+    except:
+        sys.exit("[ERROR] Unable to load the config file. Did you copy the config.py.example file?")
 
     # calculate random IPv6 from the configured subnet
 
