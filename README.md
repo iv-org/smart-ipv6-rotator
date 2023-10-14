@@ -6,11 +6,10 @@
   - requests
 
 # How to setup (very simple tutorial for the moment)
-1. Git clone the repository somewhere
-2. Copy the file `config.py.example` to `config.py`.
-3. Change the `ipv6_subnet` to your IPv6 subnet. If you do not know it, you can use a tool like http://www.gestioip.net/cgi-bin/subnet_calculator.cgi
-4. Run once the script using `sudo python smart-ipv6-rotator.py run`
-5. If everything went well then configure a cron for periodically rotate your IPv6 range.
+1. Git clone the repository somewhere.
+2. Change the `ipv6_subnet` to your IPv6 subnet. If you do not know it, you can use a tool like http://www.gestioip.net/cgi-bin/subnet_calculator.cgi
+3. Run once the script using `sudo python smart-ipv6-rotator.py run --ipv6range=YOURIPV6SUBNET/64`
+4. If everything went well then configure a cron for periodically rotate your IPv6 range.
    Twice a day (noon and midnight) is enough for YouTube servers. Also at the reboot of the server!
 
 # How to clean the configuration done by the script
