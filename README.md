@@ -10,7 +10,8 @@
 2. Copy the file `config.py.example` to `config.py`.
 3. Change the `ipv6_subnet` to your IPv6 subnet. If you do not know it, you can use a tool like http://www.gestioip.net/cgi-bin/subnet_calculator.cgi
 4. Run once the script using `sudo python smart-ipv6-rotator.py run`
-5. If everything went well then configure a cron for periodically rotate your IPv6 range. Once per day is enough for YouTube servers.
+5. If everything went well then configure a cron for periodically rotate your IPv6 range.
+   Twice a day (noon and midnight) is enough for YouTube servers. Also at the reboot of the server!
 
 # How to clean the configuration done by the script
 ```
@@ -31,9 +32,14 @@ The attack surface of this script is very limited as it is not running in the ba
 4. It configures route for only using that new random IPv6 address for the specific IPv6 subnets (Google ipv6 ranges by default).
    This way you current ipv6 network configuration is untouched.
 
-# TODO
-- Allow to configure your IPv6 subnets yourself. (Could be used for other projects)
-- Better handle in case of errors in configuring IPv6 routes. Rollback the changes automatically
-- Argument for testing if the setup will work without permanently do any modification.
-- Allow to specify a specific network interface + ipv6 gateway instead of automatically discovering it.
-- Arg for spit out the IPv6 subnet of the current default ipv6 address instead of saying to use gestioip.net tool.
+# TODO (priority)
+## High
+- [ ] Allow to configure your IPv6 subnets yourself. (Could be used for other projects)
+- [x] Better handle in case of errors in configuring IPv6 routes. Rollback the changes automatically
+- [ ] Allow to specify a specific network interface + ipv6 gateway instead of automatically discovering it.
+## Medium
+- [ ] Arg for spit out the IPv6 subnet of the current default ipv6 address instead of saying to use gestioip.net tool.
+## Low
+- [ ] Argument for testing if the setup will work without permanently do any modification.
+- [ ] Allow to remove debug info
+- [ ] Maybe not depend on icanhazip? Send requests in HTTPS?
