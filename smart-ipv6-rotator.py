@@ -98,11 +98,13 @@ def clean_previous_setup(existing_settings):
         except:
             print("[Error] Failed to remove the random IPv6 address, very unexpected!")
 
-        print("[INFO] Finished cleaning up previous setup.")
         if len(existing_settings) == 0:
             os.remove(location_saved_config_ipv6_configured)
 
-        print("[INFO] Waiting for the propagation in the Linux kernel.")
+        print(
+            "[INFO] Finished cleaning up previous setup.\n"
+            "[INFO] Waiting for the propagation in the Linux kernel."
+        )
         sleep(6)
     else:
         print("[INFO] No cleanup of previous setup needed.")
@@ -112,8 +114,10 @@ if os.geteuid() != 0:
     sys.exit("[Error] Please run this script as root! It needs root privileges.")
 
 if len(sys.argv) == 1:
-    print("Args:\n- run: Run the script\n- clean: Clean the previous setup.\n")
-    print(f"Example: python {sys.argv[0]} run")
+    print(
+        "Args:\n- run: Run the script\n- clean: Clean the previous setup.\n"
+        f"Example: python {sys.argv[0]} run"
+    )
 
 elif sys.argv[1] == "clean":
     clean_previous_setup({})
@@ -134,7 +138,6 @@ elif sys.argv[1] == "run":
 
     seed()
     ipv6_network = IPv6Network(settings["ipv6_subnet"])
-    print(ipv6_network.prefixlen)
     random_ipv6_address = str(
         IPv6Address(
             ipv6_network.network_address
@@ -154,13 +157,13 @@ elif sys.argv[1] == "run":
         "random_ipv6_address_mask": ipv6_network.prefixlen,
         "gateway": default_interface_gateway,
         "interface_index": default_interface_index,
+        "interface_name": default_interface_name,
+        "ipv6_subnet": settings["ipv6_subnet"],
     }
 
-    print(default_interface_index)
-    print(random_ipv6_address)
-    print(default_interface_name)
-    print(ipv6_network.prefixlen)
-    print(default_interface_gateway)
+    print("[DEBUG] Debug info:")
+    for k, v in memory_settings.items():
+        print (k, '-->', v)
 
     try:
         iproute.addr(
@@ -240,7 +243,8 @@ elif sys.argv[1] == "run":
             f"Exception:\n{e}"
         )
 
-    print("[INFO] Correctly configured the IPv6 routes for Google IPv6 ranges. Waiting for the propagation in the Linux kernel.")
+    print("[INFO] Correctly configured the IPv6 routes for Google IPv6 ranges.\n"
+        "[INFO] Successful setup. Waiting for the propagation in the Linux kernel.")
     sleep(6)
 
     # saving configuration to a file for future cleanup
