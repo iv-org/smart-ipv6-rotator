@@ -39,7 +39,7 @@ icanhazip_ipv6_address = "2606:4700::6812:7261"
 
 def check_ipv6_connectivity():
     try:
-        requests.get("http://ipv6.icanhazip.com")
+        requests.get("http://ipv6.icanhazip.com", timeout=5)
     except requests.exceptions.RequestException:
         sys.exit("[Error] You do not have IPv6 connectivity. This script can not work.")
 
@@ -143,7 +143,7 @@ elif sys.argv[1] == "run":
     sleep(2)
     try:
         check_new_ipv6_address = requests.get(
-            f"http://[{icanhazip_ipv6_address}]", headers={"host": "ipv6.icanhazip.com"}
+            f"http://[{icanhazip_ipv6_address}]", headers={"host": "ipv6.icanhazip.com", timeout=5}
         )
         response_new_ipv6_address = check_new_ipv6_address.text.strip()
         if response_new_ipv6_address == random_ipv6_address:
