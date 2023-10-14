@@ -143,7 +143,7 @@ elif sys.argv[1] == "run":
     sleep(2)
     try:
         check_new_ipv6_address = requests.get(
-            f"http://[{icanhazip_ipv6_address}]", headers={"host": "ipv6.icanhazip.com", timeout=5}
+            f"http://[{icanhazip_ipv6_address}]", headers={"host": "ipv6.icanhazip.com"}, timeout=5}
         )
         response_new_ipv6_address = check_new_ipv6_address.text.strip()
         if response_new_ipv6_address == random_ipv6_address:
