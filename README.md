@@ -15,7 +15,13 @@ Full detailed documentation: https://docs.invidious.io/ipv6-rotator/
 2. Find your IPv6 subnet. If you do not know it, you can use a tool like http://www.gestioip.net/cgi-bin/subnet_calculator.cgi
 3. Run once the script using `sudo python smart-ipv6-rotator.py run --ipv6range=YOURIPV6SUBNET/64`
 4. If everything went well then configure a cron to periodically rotate your IPv6 range.
-   Twice a day (noon and midnight) is enough for YouTube servers. Also at the reboot of the server!
+   Twice a day (noon and midnight) is enough for YouTube servers. Also at the reboot of the server!  
+   Example crontab (`crontab -e -u root`):
+   ```
+   @reboot sleep 30s && python smart-ipv6-rotator.py run --ipv6range=YOURIPV6SUBNET/64
+   0 */12 * * * python smart-ipv6-rotator.py run --ipv6range=YOURIPV6SUBNET/64
+   ```  
+   The `sleep` command is used in case your network takes too much time time to be ready.
 
 # How to clean the configuration done by the script
 ```
