@@ -4,7 +4,7 @@
 - Install these two python packages:
   - pyroute2
   - requests
-- Your provider need to allow you to assign any arbitrary IPv6 address, your IPv6 space must be fully routed.
+- Your provider need to allow you to assign any arbitrary IPv6 address, your IPv6 space must be fully routed.  
   Usually the case but some do not support it like the popular cloud providers: AWS, Google Cloud, Oracle Cloud, Azure and more.
 
 # How to setup (very simple tutorial)
@@ -34,7 +34,7 @@ The attack surface of this script is very limited as it is not running in the ba
 2. It automatically find the default IPv6 gateway and automatically generate a random IPv6 address from the IPv6 subnet that you configured.
 3. It adds the random IPv6 address to the network interface.
 4. It configures route for only using that new random IPv6 address for the specific IPv6 subnets (Google ipv6 ranges by default).
-   This way you current ipv6 network configuration is untouched.
+   This way your current ipv6 network configuration is untouched.
 
 # TODO (priority)
 ## High
