@@ -33,8 +33,8 @@ The attack surface of this script is very limited as it is not running in the ba
 1. First it check that you have IPv6 connectivity.
 2. It automatically find the default IPv6 gateway and automatically generate a random IPv6 address from the IPv6 subnet that you configured.
 3. It adds the random IPv6 address to the network interface.
-4. It configures route for only using that new random IPv6 address for the specific IPv6 subnets (Google ipv6 ranges by default).
-   This way your current ipv6 network configuration is untouched.
+4. It configures route for only using that new random IPv6 address for the specific IPv6 subnets (Google ipv6 ranges by default).  
+   This way your current ipv6 network configuration is untouched and any change done by the script is temporary.
 
 # TODO (priority)
 ## High
