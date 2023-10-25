@@ -1,0 +1,9 @@
+config.py
+__pycache__
+
+.*
+
+Dockerfile
+LICENSE
+
+*.md
