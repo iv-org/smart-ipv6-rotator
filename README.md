@@ -23,6 +23,10 @@ Full detailed documentation: https://docs.invidious.io/ipv6-rotator/
    ```  
    The `sleep` command is used in case your network takes too much time time to be ready.
 
+# Docker image
+
+https://quay.io/repository/invidious/smart-ipv6-rotator
+
 # How to clean the configuration done by the script
 ```
 sudo python smart-ipv6-rotator.py clean
@@ -44,7 +48,7 @@ The attack surface of this script is very limited as it is not running in the ba
 
 # TODO (priority)
 ## High
-- [ ] Docker image for easier use.
+- [x] Docker image for easier use.
 - [ ] Allow to configure your IPv6 subnets yourself. (Could be used for other projects)
 - [x] Better handle in case of errors in configuring IPv6 routes. Rollback the changes automatically
 - [ ] Allow to specify a specific network interface + ipv6 gateway instead of automatically discovering it.
