@@ -34,11 +34,6 @@ iproute = IPRoute()
 
 class SmartIPv6Rotator(object):
     def __init__(self):
-        if os.geteuid() != 0:
-            sys.exit(
-                "[Error] Please run this script as root! It needs root privileges."
-            )
-
         parser = argparse.ArgumentParser(
             description="IPv6 rotator",
             usage="""smart-ipv6-rotator.py <command> [<args>]
@@ -80,6 +75,21 @@ The available args are:
         print("[INFO] You have IPv6 connectivity. Continuing.")
 
     def clean_previous_setup(self, existing_settings):
+        parser = argparse.ArgumentParser(description="Run the IPv6 rotator.")
+        parser.add_argument(
+            "--skip-root",
+            required=False,
+            dest='skip_root_check',
+            action=argparse.BooleanOptionalAction,
+            help="Example: --skip-root for skipping root check",
+        )
+        args = parser.parse_args(sys.argv[2:])
+
+        if os.geteuid() != 0 and not args.skip_root_check:
+            sys.exit(
+                "[Error] Please run this script as root! It needs root privileges."
+            )
+
         if (
             os.path.isfile(self.location_saved_config_ipv6_configured)
             or len(existing_settings) > 0
@@ -150,9 +160,21 @@ The available args are:
             "-r",
             "--ipv6range",
             required=True,
-            help="Example: --ipv6range=2001:861:4501:4a10::/64",
+            help="Example: --ipv6range=2001:1:1::/64",
+        )
+        parser.add_argument(
+            "--skip-root",
+            required=False,
+            dest='skip_root_check',
+            action=argparse.BooleanOptionalAction,
+            help="Example: --skip-root for skipping root check",
         )
         args = parser.parse_args(sys.argv[2:])
+
+        if os.geteuid() != 0 and not args.skip_root_check:
+            sys.exit(
+                "[Error] Please run this script as root! It needs root privileges."
+            )
 
         self.check_ipv6_connectivity()
         self.clean_previous_setup({})
