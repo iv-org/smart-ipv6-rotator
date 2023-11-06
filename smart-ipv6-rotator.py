@@ -74,16 +74,7 @@ The available args are:
 
         print("[INFO] You have IPv6 connectivity. Continuing.")
 
-    def clean_previous_setup(self, existing_settings):
-        parser = argparse.ArgumentParser(description="Run the IPv6 rotator.")
-        parser.add_argument(
-            "--skip-root",
-            required=False,
-            dest='skip_root_check',
-            action=argparse.BooleanOptionalAction,
-            help="Example: --skip-root for skipping root check",
-        )
-        args = parser.parse_args(sys.argv[2:])
+    def clean_previous_setup(self, existing_settings, args):
 
         if os.geteuid() != 0 and not args.skip_root_check:
             sys.exit(
@@ -151,8 +142,15 @@ The available args are:
 
     def clean(self):
         parser = argparse.ArgumentParser(description="Clean the previous setup.")
+        parser.add_argument(
+            "--skip-root",
+            required=False,
+            dest='skip_root_check',
+            action=argparse.BooleanOptionalAction,
+            help="Example: --skip-root for skipping root check",
+        )
         args = parser.parse_args(sys.argv[2:])
-        self.clean_previous_setup({})
+        self.clean_previous_setup({}, args)
 
     def run(self):
         parser = argparse.ArgumentParser(description="Run the IPv6 rotator.")
@@ -177,7 +175,7 @@ The available args are:
             )
 
         self.check_ipv6_connectivity()
-        self.clean_previous_setup({})
+        self.clean_previous_setup({}, args)
 
         # calculate random IPv6 from the configured subnet
 
