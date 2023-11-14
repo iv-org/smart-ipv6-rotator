@@ -216,7 +216,7 @@ The available args are:
                 mask=ipv6_network.prefixlen,
             )
         except Exception as e:
-            self.clean_previous_setup(memory_settings)
+            self.clean_previous_setup(memory_settings, args)
             sys.exit(
                 "[Error] Failed to add the new random IPv6 address. The setup did not work!\n"
                 "        That's unexpected! Did you correctly configured the IPv6 subnet to use?\n"
@@ -236,7 +236,7 @@ The available args are:
                 priority=1,
             )
         except Exception as e:
-            self.clean_previous_setup(memory_settings)
+            self.clean_previous_setup(memory_settings, args)
             sys.exit(
                 "[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
                 f"       Exception:\n{e}"
@@ -253,14 +253,14 @@ The available args are:
             if response_new_ipv6_address == random_ipv6_address:
                 print("[INFO] Correctly using the new random IPv6 address, continuing.")
             else:
-                self.clean_previous_setup(memory_settings)
+                self.clean_previous_setup(memory_settings, args)
                 sys.exit(
                     "[ERROR] The new random IPv6 is not used! The setup did not work!\n"
                     "        That is very unexpected, check if your IPv6 routes do not have too much priority."
                     f"       Address used: {response_new_ipv6_address}"
                 )
         except requests.exceptions.RequestException as e:
-            self.clean_previous_setup(memory_settings)
+            self.clean_previous_setup(memory_settings, args)
             sys.exit(
                 "[ERROR] Failed to send the request for checking the new IPv6 address! The setup did not work!\n"
                 "        Your provider probably does not allow setting any arbitrary IPv6 address.\n"
@@ -280,7 +280,7 @@ The available args are:
                     priority=1,
                 )
         except Exception as e:
-            self.clean_previous_setup(memory_settings)
+            self.clean_previous_setup(memory_settings, args)
             sys.exit(
                 f"[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
                 f"        Exception:\n{e}"
