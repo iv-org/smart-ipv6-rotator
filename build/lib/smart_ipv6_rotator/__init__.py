@@ -1,9 +1,9 @@
+import argparse
 from ipaddress import IPv6Address, IPv6Network
 from random import choice, getrandbits, seed
 from time import sleep
 from typing import Any, Callable
 
-import click
 import requests
 
 from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IP, IPROUTE
@@ -18,58 +18,59 @@ from smart_ipv6_rotator.helpers import (
 from smart_ipv6_rotator.ranges import RANGES
 
 SHARED_OPTIONS = [
-    click.option(
+    (
         "--services",
-        type=click.types.Choice(list(RANGES.keys())),
-        required=False,
-        default="google",
-        help="IPV6 ranges of popular services. Example: --services google,twitter",
+        {
+            "type": str,
+            "choices": list(RANGES.keys()),
+            "required": False,
+            "default": "google",
+            "help": "IPV6 ranges of popular services. Example: --services google,twitter",
+        },
     ),
-    click.option(
+    (
         "--ipv6-ranges",
-        type=click.types.STRING,
-        required=False,
-        help="Manually define external IPV6 ranges to rotate for.",
+        {
+            "type": str,
+            "required": False,
+            "help": "Manually define external IPV6 ranges to rotate for.",
+        },
     ),
-    click.option(
+    (
         "--skip-root",
-        required=False,
-        type=click.types.BOOL,
-        help="Example: --skip-root for skipping root check",
-        default=False,
+        {
+            "action": "store_true",
+            "required": False,
+            "help": "Example: --skip-root for skipping root check",
+        },
     ),
-    click.option(
+    (
         "--no-services",
-        required=False,
-        type=click.types.BOOL,
-        default=False,
-        help="Completely disables the --services flag.",
+        {
+            "action": "store_true",
+            "required": False,
+            "help": "Completely disables the --services flag.",
+        },
     ),
 ]
 
 
 def add_options(options) -> Callable[..., Any]:
     def _add_options(func) -> Any:
-        for option in reversed(options):
-            func = option(func)
-        return func
+        parser = argparse.ArgumentParser()
+        for option, kwargs in reversed(options):
+            parser.add_argument(option, **kwargs)
+        return parser.parse_args()
 
     return _add_options
 
 
-@click.group()
-def main() -> None:
-    """IPv6 rotator for specific subnets - unblock restrictions on IPv6 enabled websites"""
-    pass
+def print_debug_info(memory_settings: dict):
+    print("[DEBUG] Debug info:")
+    for key, value in memory_settings.items():
+        print(f"{key} --> {value}")
 
 
-@main.command()
-@click.option(
-    "--my-ipv6-range",
-    required=True,
-    help="Your IPV6 range. Example: --my-ipv6-rang=2001:1:1::/64",
-)
-@add_options(SHARED_OPTIONS)
 def run(
     my_ipv6_range: str,
     skip_root: bool = False,
@@ -114,9 +115,7 @@ def run(
         SavedRanges(**{**memory_settings, "ranges": service_ranges})
     )
 
-    click.echo("[DEBUG] Debug info:")
-    for key, value in memory_settings.items():
-        click.echo(f"{key} --> {value}")
+    print_debug_info(memory_settings)
 
     try:
         IPROUTE.addr(
@@ -178,7 +177,7 @@ def run(
 
     response_new_ipv6_address = check_new_ipv6_address.text.strip()
     if response_new_ipv6_address == random_ipv6_address:
-        click.echo("[INFO] Correctly using the new random IPv6 address, continuing.")
+        print("[INFO] Correctly using the new random IPv6 address, continuing.")
     else:
         clean_ranges(service_ranges, skip_root)
         raise Exception(
@@ -204,15 +203,13 @@ def run(
             f"        Exception:\n{error}"
         )
 
-    click.echo(
+    print(
         f"[INFO] Correctly configured the IPv6 routes for IPv6 ranges {service_ranges}.\n"
         "[INFO] Successful setup. Waiting for the propagation in the Linux kernel."
     )
     sleep(6)
 
 
-@main.command()
-@add_options(SHARED_OPTIONS)
 def clean(
     skip_root: bool = False,
     services: str | None = None,
@@ -222,3 +219,26 @@ def clean(
     """Clean your system for a given service / ipv6 ranges."""
 
     clean_ranges(what_ranges(services, ipv6_ranges, no_services), skip_root)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="IPv6 rotator for specific subnets - unblock restrictions on IPv6 enabled websites"
+    )
+    subparsers = parser.add_subparsers()
+
+    run_parser = subparsers.add_parser("run")
+    run_parser.add_argument(
+        "--my-ipv6-range",
+        required=True,
+        help="Your IPV6 range. Example: --my-ipv6-rang=2001:1:1::/64",
+    )
+    add_options(SHARED_OPTIONS)(run_parser)
+    run_parser.set_defaults(func=run)
+
+    clean_parser = subparsers.add_parser("clean")
+    add_options(SHARED_OPTIONS)(clean_parser)
+    clean_parser.set_defaults(func=clean)
+
+    args = parser.parse_args()
+    args.func(**vars(args))

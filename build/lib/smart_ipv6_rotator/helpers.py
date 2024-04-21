@@ -3,7 +3,6 @@ import os
 from dataclasses import asdict, dataclass
 from time import sleep
 
-import click
 import requests
 
 from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IPROUTE
@@ -29,7 +28,7 @@ def check_ipv6_connectivity() -> None:
             "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
         )
 
-    click.echo("[INFO] You have IPv6 connectivity. Continuing.")
+    print("[INFO] You have IPv6 connectivity. Continuing.")
 
 
 def what_ranges(
@@ -83,7 +82,7 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
 
     previous = previous_config.get()
     if not previous:
-        click.echo("[INFO] No cleanup of previous setup needed.")
+        print("[INFO] No cleanup of previous setup needed.")
         return
 
     try:
@@ -95,7 +94,7 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
             oif=previous.interface_index,
         )
     except:
-        click.echo(
+        print(
             """[Error] Failed to remove the test IPv6 subnet.
             May be expected if the route were not yet configured and that was a cleanup due to an error.
             """
@@ -111,7 +110,7 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
                 oif=previous.interface_index,
             )
     except:
-        click.echo(
+        print(
             f"""[Error]  Failed to remove the configured IPv6 subnets {','.join(previous.ranges)}
             May be expected if the route were not yet configured and that was a cleanup due to an error
             """
@@ -125,11 +124,11 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
             mask=previous.random_ipv6_address_mask,
         )
     except:
-        click.echo("[Error] Failed to remove the random IPv6 address, very unexpected!")
+        print("[Error] Failed to remove the random IPv6 address, very unexpected!")
 
     previous_config.remove()
 
-    click.echo(
+    print(
         "[INFO] Finished cleaning up previous setup.\n[INFO] Waiting for the propagation in the Linux kernel."
     )
 
