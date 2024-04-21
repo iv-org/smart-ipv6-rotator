@@ -17,6 +17,9 @@ tinydb = "^4.8.0"
 [tool.poetry.scripts]
 smart-ipv6-rotator = "smart_ipv6_rotator:main"
 
+[tool.poetry.group.dev.dependencies]
+toml = "^0.10.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
