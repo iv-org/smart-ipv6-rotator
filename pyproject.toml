@@ -1,25 +1,19 @@
-[tool.poetry]
+[project]
 name = "smart-ipv6-rotator"
 version = "0.0.1"
+dependencies = [
+    "requests>=2.31.0",
+    "pyroute2>=0.7.12",
+    "click>=8.1.7",
+    "tinydb>=4.8.0",
+]
+authors = [
+    {name = "FireMasterK"},
+    {name = "TheFrenchGhosty"},
+    {name = "WardPearce"}
+]
 description = "IPv6 rotator for specific subnets - unblock restrictions on IPv6 enabled websites"
-authors = []
 readme = "README.md"
-packages = [{include = "smart_ipv6_rotator"}]
 
-[tool.poetry.dependencies]
-python = "^3.12"
-requests = "^2.31.0"
-pyroute2 = "^0.7.12"
-click = "^8.1.7"
-tinydb = "^4.8.0"
-
-
-[tool.poetry.scripts]
+[project.scripts]
 smart-ipv6-rotator = "smart_ipv6_rotator:main"
-
-[tool.poetry.group.dev.dependencies]
-toml = "^0.10.2"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
