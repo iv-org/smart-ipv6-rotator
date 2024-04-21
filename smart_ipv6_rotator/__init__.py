@@ -25,6 +25,7 @@ SHARED_OPTIONS = [
         "--services",
         type=click.types.Choice(list(RANGES.keys())),
         required=False,
+        default="google",
         help="IPV6 ranges of popular services. Example: --services google,twitter",
     ),
     click.option(
@@ -39,6 +40,13 @@ SHARED_OPTIONS = [
         type=click.types.BOOL,
         help="Example: --skip-root for skipping root check",
         default=False,
+    ),
+    click.option(
+        "--no-services",
+        required=False,
+        type=click.types.BOOL,
+        default=False,
+        help="Completely disables the --services flag.",
     ),
 ]
 
@@ -70,13 +78,14 @@ def run(
     skip_root: bool = False,
     services: str | None = None,
     ipv6_ranges: str | None = None,
+    no_services: bool = False,
 ) -> None:
     """Run the IPv6 rotator process."""
 
     root_check(skip_root)
     check_ipv6_connectivity()
 
-    service_ranges = what_ranges(services, ipv6_ranges)
+    service_ranges = what_ranges(services, ipv6_ranges, no_services)
 
     clean_ranges(service_ranges, skip_root)
 
@@ -208,8 +217,11 @@ def run(
 @main.command()
 @add_options(SHARED_OPTIONS)
 def clean(
-    skip_root: bool = False, services: str | None = None, ipv6_ranges: str | None = None
+    skip_root: bool = False,
+    services: str | None = None,
+    ipv6_ranges: str | None = None,
+    no_services: bool = False,
 ) -> None:
     """Clean your system for a given service / ipv6 ranges."""
 
-    clean_ranges(what_ranges(services, ipv6_ranges), skip_root)
+    clean_ranges(what_ranges(services, ipv6_ranges, no_services), skip_root)
