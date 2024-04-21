@@ -22,10 +22,10 @@ from smart_ipv6_rotator.ranges import RANGES
 
 SHARED_OPTIONS = [
     click.option(
-        "--service",
+        "--services",
         type=click.types.Choice(list(RANGES.keys())),
         required=False,
-        help="IPV6 ranges of popular services.",
+        help="IPV6 ranges of popular services. Example: --services google,twitter",
     ),
     click.option(
         "--ipv6-ranges",
@@ -68,7 +68,7 @@ def main() -> None:
 def run(
     my_ipv6_range: str,
     skip_root: bool = False,
-    service: str | None = None,
+    services: str | None = None,
     ipv6_ranges: str | None = None,
 ) -> None:
     """Run the IPv6 rotator process."""
@@ -76,7 +76,7 @@ def run(
     root_check(skip_root)
     check_ipv6_connectivity()
 
-    service_ranges = what_ranges(service, ipv6_ranges)
+    service_ranges = what_ranges(services, ipv6_ranges)
 
     clean_ranges(service_ranges, skip_root)
 
@@ -208,8 +208,8 @@ def run(
 @main.command()
 @add_options(SHARED_OPTIONS)
 def clean(
-    skip_root: bool = False, service: str | None = None, ipv6_ranges: str | None = None
+    skip_root: bool = False, services: str | None = None, ipv6_ranges: str | None = None
 ) -> None:
     """Clean your system for a given service / ipv6 ranges."""
 
-    clean_ranges(what_ranges(service, ipv6_ranges), skip_root)
+    clean_ranges(what_ranges(services, ipv6_ranges), skip_root)

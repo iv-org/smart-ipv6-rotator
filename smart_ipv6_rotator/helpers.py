@@ -33,12 +33,12 @@ def check_ipv6_connectivity() -> None:
 
 
 def what_ranges(
-    service: str | None = None, ipv6_ranges: str | None = None
+    services: str | None = None, ipv6_ranges: str | None = None
 ) -> list[str]:
     """Works out what service ranges the user wants to use.
 
     Args:
-        service (str | None, optional): Defaults to None.
+        services (str | None, optional): Defaults to None.
         ipv6_ranges (str | None, optional): Defaults to None.
 
     Raises:
@@ -48,16 +48,17 @@ def what_ranges(
         list[str]: IPV6 ranges
     """
 
-    if not service and not ipv6_ranges:
+    if not services and not ipv6_ranges:
         raise Exception("No service or ranges given.")
 
     ranges_: list[str] = []
 
-    if service:
-        if service not in RANGES:
-            raise Exception(f"{service} isn't a valid service.")
+    if services:
+        for service in services.split(","):
+            if service not in RANGES:
+                raise Exception(f"{service} isn't a valid service.")
 
-        ranges_ = list(RANGES[service])
+            ranges_ += list(RANGES[service])
 
     if ipv6_ranges:
         ranges_ += ipv6_ranges.split(",")
