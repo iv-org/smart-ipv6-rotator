@@ -65,7 +65,7 @@ def what_ranges(
     if not ranges_:
         raise Exception("No service or ranges given.")
 
-    return ranges_
+    return list(set(ranges_))
 
 
 def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
