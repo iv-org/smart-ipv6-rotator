@@ -29,7 +29,7 @@ SHARED_OPTIONS = [
         },
     ),
     (
-        "--ipv6-ranges",
+        "--external-ipv6-ranges",
         {
             "type": str,
             "help": "Manually define external IPV6 ranges to rotate for.",
@@ -65,10 +65,10 @@ def parse_args(func) -> Callable[..., Any]:
 
 @parse_args
 def run(
-    my_ipv6_range: str,
+    ipv6range: str,
     skip_root: bool = False,
     services: str | None = None,
-    ipv6_ranges: str | None = None,
+    external_ipv6_ranges: str | None = None,
     no_services: bool = False,
 ) -> None:
     """Run the IPv6 rotator process."""
@@ -76,12 +76,12 @@ def run(
     root_check(skip_root)
     check_ipv6_connectivity()
 
-    service_ranges = what_ranges(services, ipv6_ranges, no_services)
+    service_ranges = what_ranges(services, external_ipv6_ranges, no_services)
 
     clean_ranges(service_ranges, skip_root)
 
     seed()
-    ipv6_network = IPv6Network(my_ipv6_range)
+    ipv6_network = IPv6Network(ipv6range)
     random_ipv6_address = str(
         IPv6Address(
             ipv6_network.network_address
@@ -100,7 +100,7 @@ def run(
         "gateway": default_interface_gateway,
         "interface_index": default_interface_index,
         "interface_name": default_interface_name,
-        "ipv6_subnet": my_ipv6_range,
+        "ipv6_subnet": ipv6range,
     }
 
     # Save config now, will be cleaned if errors raised.
@@ -209,12 +209,12 @@ def run(
 def clean(
     skip_root: bool = False,
     services: str | None = None,
-    ipv6_ranges: str | None = None,
+    external_ipv6_ranges: str | None = None,
     no_services: bool = False,
 ) -> None:
     """Clean your system for a given service / ipv6 ranges."""
 
-    clean_ranges(what_ranges(services, ipv6_ranges, no_services), skip_root)
+    clean_ranges(what_ranges(services, external_ipv6_ranges, no_services), skip_root)
 
 
 def main() -> None:
@@ -229,7 +229,7 @@ def main() -> None:
         run_parser.add_argument(flag, **config)
 
     run_parser.add_argument(
-        "--my-ipv6-range",
+        "--ipv6range",
         help="Your IPV6 range. Example: 2407:7000:9827:4100::/64",
     )
     run_parser.set_defaults(func=run)
