@@ -6,6 +6,7 @@ from typing import Any, Callable
 
 import requests
 
+from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IP, IPROUTE
 from smart_ipv6_rotator.helpers import (
     PreviousConfigs,
     SavedRanges,
@@ -15,8 +16,6 @@ from smart_ipv6_rotator.helpers import (
     what_ranges,
 )
 from smart_ipv6_rotator.ranges import RANGES
-
-from .const import ICANHAZIP_IPV6_ADDRESS, IP, IPROUTE
 
 SHARED_OPTIONS = [
     (
