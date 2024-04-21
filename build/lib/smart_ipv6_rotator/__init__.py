@@ -1,4 +1,3 @@
-import os
 from ipaddress import IPv6Address, IPv6Network
 from random import choice, getrandbits, seed
 from time import sleep

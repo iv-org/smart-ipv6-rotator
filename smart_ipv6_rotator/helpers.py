@@ -1,10 +1,10 @@
+import json
 import os
 from dataclasses import asdict, dataclass
 from time import sleep
 
 import click
 import requests
-from tinydb import Query, TinyDB
 
 from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IPROUTE
 from smart_ipv6_rotator.ranges import RANGES
@@ -148,16 +148,40 @@ class SavedRanges:
 
 
 class PreviousConfigs:
+    json_file = "/tmp/smart-ipv6-rotator.json"
 
     def __init__(
         self,
         ranges_: list[str],
     ) -> None:
-        self.db = TinyDB("/tmp/smart-ipv6-rotator.json")
-        self.ranges_ = ranges_
+        self.__ranges = ranges_
+
+    def __get_raw(self) -> list[dict]:
+        if not os.path.exists(self.json_file):
+            return []
+
+        with open(self.json_file, "r") as f_:
+            return json.loads(f_.read())
+
+    def __ranges_exist(self, results: dict) -> bool:
+        return all(value in self.__ranges for value in results["ranges"])
 
     def remove(self) -> None:
-        self.db.remove(Query().ranges.all(self.ranges_))
+        results = self.__get_raw()
+        to_remove_index = next(
+            (
+                index
+                for index, ranges in enumerate(results)
+                if self.__ranges_exist(ranges)
+            ),
+            None,
+        )
+
+        if to_remove_index is not None:
+            results.pop(to_remove_index)
+
+            with open(self.json_file, "w") as f_:
+                f_.write(json.dumps(results))
 
     def save(self, to_save: SavedRanges) -> None:
         """Save a given service/ipv6 ranges for cleanup later.
@@ -168,11 +192,15 @@ class PreviousConfigs:
 
         self.remove()
 
-        self.db.insert(asdict(to_save))
+        results = self.__get_raw()
+        results.append(asdict(to_save))
+
+        with open(self.json_file, "w") as f_:
+            f_.write(json.dumps(results))
 
     def get(self) -> SavedRanges | None:
-        result = self.db.search(Query().ranges.all(self.ranges_))
-        if not result:
-            return
+        results = self.__get_raw()
 
-        return SavedRanges(**result[0])
+        for result in results:
+            if self.__ranges_exist(result):
+                return SavedRanges(**result)

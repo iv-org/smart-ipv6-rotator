@@ -5,7 +5,6 @@ dependencies = [
     "requests>=2.31.0",
     "pyroute2>=0.7.12",
     "click>=8.1.7",
-    "tinydb>=4.8.0",
 ]
 authors = [
     {name = "FireMasterK"},
