@@ -1,6 +1,6 @@
 [project]
 name = "smart-ipv6-rotator"
-version = "0.0.1"
+version = "1.0.0"
 dependencies = [
     "requests>=2.31.0",
     "pyroute2>=0.7.12",
