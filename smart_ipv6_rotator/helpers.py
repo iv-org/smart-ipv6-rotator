@@ -136,7 +136,7 @@ class SavedRanges:
     interface_index: int
     interface_name: str
     ipv6_subnet: str
-    random_ipv6_address_mask: str
+    random_ipv6_address_mask: int
 
 
 class PreviousConfigs:
