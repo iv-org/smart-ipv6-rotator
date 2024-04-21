@@ -162,6 +162,14 @@ def run(
             f"       Exception:\n{error}"
         )
 
+    try:
+        check_new_ipv6_address.raise_for_status()
+    except requests.HTTPError:
+        clean_ranges(service_ranges, skip_root)
+        raise Exception(
+            "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
+        )
+
     response_new_ipv6_address = check_new_ipv6_address.text.strip()
     if response_new_ipv6_address == random_ipv6_address:
         click.echo("[INFO] Correctly using the new random IPv6 address, continuing.")

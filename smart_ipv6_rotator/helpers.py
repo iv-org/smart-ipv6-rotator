@@ -20,9 +20,13 @@ def root_check(skip_root: bool = False) -> None:
 def check_ipv6_connectivity() -> None:
     try:
         requests.get("http://ipv6.icanhazip.com", timeout=5)
-    except requests.exceptions.RequestException:
+    except requests.Timeout:
         raise Exception(
             "[Error] You do not have IPv6 connectivity. This script can not work."
+        )
+    except requests.HTTPError:
+        raise Exception(
+            "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
         )
 
     click.echo("[INFO] You have IPv6 connectivity. Continuing.")
