@@ -230,6 +230,7 @@ def main() -> None:
     run_parser.add_argument(
         "--ipv6range",
         help="Your IPV6 range. Example: 2407:7000:9827:4100::/64",
+        required=True,
     )
     run_parser.set_defaults(func=run)
 
@@ -241,5 +242,9 @@ def main() -> None:
 
     clean_parser.set_defaults(func=clean)
 
+    # Check if a command is being ran, otherwise print help.
     args = parser.parse_args()
-    args.func(args)
+    if hasattr(args, "func"):
+        args.func(args)
+    else:
+        parser.print_help()
