@@ -1,4 +1,5 @@
 import argparse
+from dataclasses import asdict
 from ipaddress import IPv6Address, IPv6Network
 from random import choice, getrandbits, seed
 from time import sleep
@@ -8,10 +9,12 @@ import requests
 
 from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IP, IPROUTE
 from smart_ipv6_rotator.helpers import (
-    PreviousConfigs,
+    PreviousConfig,
     SavedRanges,
     check_ipv6_connectivity,
+    clean_ipv6_check,
     clean_ranges,
+    previous_configs,
     root_check,
     what_ranges,
 )
@@ -93,22 +96,21 @@ def run(
     default_interface_gateway = str(default_interface.get_attrs("RTA_GATEWAY")[0])
     default_interface_name = IP.interfaces[default_interface_index]["ifname"]
 
-    memory_settings = {
-        "random_ipv6_address": random_ipv6_address,
-        "random_ipv6_address_mask": ipv6_network.prefixlen,
-        "gateway": default_interface_gateway,
-        "interface_index": default_interface_index,
-        "interface_name": default_interface_name,
-        "ipv6_subnet": ipv6range,
-    }
-
-    # Save config now, will be cleaned if errors raised.
-    PreviousConfigs(service_ranges).save(
-        SavedRanges(**{**memory_settings, "ranges": service_ranges})
+    saved_ranges = SavedRanges(
+        random_ipv6_address=random_ipv6_address,
+        random_ipv6_address_mask=ipv6_network.prefixlen,
+        gateway=default_interface_gateway,
+        interface_index=default_interface_index,
+        interface_name=default_interface_name,
+        ipv6_subnet=ipv6range,
+        ranges=service_ranges,
     )
 
+    # Save config now, will be cleaned if errors raised.
+    PreviousConfig(service_ranges).save(saved_ranges)
+
     print("[DEBUG] Debug info:")
-    for key, value in memory_settings.items():
+    for key, value in asdict(saved_ranges).items():
         print(f"{key} --> {value}")
 
     try:
@@ -180,6 +182,8 @@ def run(
             f"       Address used: {response_new_ipv6_address}"
         )
 
+    clean_ipv6_check(saved_ranges)
+
     try:
         for ipv6_range in service_ranges:
             IPROUTE.route(
@@ -205,7 +209,7 @@ def run(
 
 
 @parse_args
-def clean(
+def clean_one(
     skip_root: bool = False,
     services: str | None = None,
     external_ipv6_ranges: str | None = None,
@@ -214,6 +218,15 @@ def clean(
     """Clean your system for a given service / ipv6 ranges."""
 
     clean_ranges(what_ranges(services, external_ipv6_ranges, no_services), skip_root)
+
+
+def clean(
+    skip_root: bool = False,
+) -> None:
+    """Clean all configurations made by this script."""
+
+    for config in previous_configs():
+        clean_ranges(config.ranges, skip_root)
 
 
 def main() -> None:
@@ -234,12 +247,18 @@ def main() -> None:
     )
     run_parser.set_defaults(func=run)
 
-    clean_parser = subparsers.add_parser(
-        "clean", help="Clean your system for a given service / ipv6 ranges."
+    clean_one_parser = subparsers.add_parser(
+        "clean-one", help="Clean your system for a given service / ipv6 ranges."
     )
     for flag, config in SHARED_OPTIONS:
-        clean_parser.add_argument(flag, **config)
+        clean_one_parser.add_argument(flag, **config)
 
+    clean_one_parser.set_defaults(func=clean_one)
+
+    clean_parser = subparsers.add_parser(
+        "clean", help="Clean all configurations made by this script."
+    )
+    clean_parser.add_argument("--skip-root", action="store_true")
     clean_parser.set_defaults(func=clean)
 
     # Check if a command is being ran, otherwise print help.

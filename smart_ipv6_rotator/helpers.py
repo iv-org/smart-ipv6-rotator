@@ -2,10 +2,12 @@ import json
 import os
 from dataclasses import asdict, dataclass
 from time import sleep
+from typing import Iterator
 
 import requests
 
-from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IPROUTE
+from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IPROUTE, JSON_CONFIG_FILE
+from smart_ipv6_rotator.models import SavedRanges
 from smart_ipv6_rotator.ranges import RANGES
 
 
@@ -68,6 +70,23 @@ def what_ranges(
     return list(set(ranges_))
 
 
+def clean_ipv6_check(config: SavedRanges) -> None:
+    try:
+        IPROUTE.route(
+            "del",
+            dst=ICANHAZIP_IPV6_ADDRESS,
+            prefsrc=config.random_ipv6_address,
+            gateway=config.gateway,
+            oif=config.interface_index,
+        )
+    except:
+        print(
+            """[Error] Failed to remove the test IPv6 subnet.
+            May be expected if the route were not yet configured and that was a cleanup due to an error.
+            """
+        )
+
+
 def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
     """Cleans root.
 
@@ -78,27 +97,14 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
 
     root_check(skip_root)
 
-    previous_config = PreviousConfigs(ranges_)
+    previous_config = PreviousConfig(ranges_)
 
     previous = previous_config.get()
     if not previous:
         print("[INFO] No cleanup of previous setup needed.")
         return
 
-    try:
-        IPROUTE.route(
-            "del",
-            dst=ICANHAZIP_IPV6_ADDRESS,
-            prefsrc=previous.random_ipv6_address,
-            gateway=previous.gateway,
-            oif=previous.interface_index,
-        )
-    except:
-        print(
-            """[Error] Failed to remove the test IPv6 subnet.
-            May be expected if the route were not yet configured and that was a cleanup due to an error.
-            """
-        )
+    clean_ipv6_check(previous)
 
     try:
         for ipv6_range in previous.ranges:
@@ -135,31 +141,26 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
     sleep(6)
 
 
-@dataclass
-class SavedRanges:
-    ranges: list[str]
-    random_ipv6_address: str
-    gateway: str
-    interface_index: int
-    interface_name: str
-    ipv6_subnet: str
-    random_ipv6_address_mask: int
+def previous_configs() -> Iterator[SavedRanges]:
+    configs = PreviousConfig._get_raw()
+
+    for config in configs:
+        yield SavedRanges(**config)
 
 
-class PreviousConfigs:
-    json_file = "/tmp/smart-ipv6-rotator.json"
-
+class PreviousConfig:
     def __init__(
         self,
         ranges_: list[str],
     ) -> None:
         self.__ranges = ranges_
 
-    def __get_raw(self) -> list[dict]:
-        if not os.path.exists(self.json_file):
+    @classmethod
+    def _get_raw(cls) -> list[dict]:
+        if not os.path.exists(JSON_CONFIG_FILE):
             return []
 
-        with open(self.json_file, "r") as f_:
+        with open(JSON_CONFIG_FILE, "r") as f_:
             return json.loads(f_.read())
 
     def __ranges_exist(self, results: dict) -> bool:
@@ -168,7 +169,7 @@ class PreviousConfigs:
     def remove(self) -> None:
         """Remove range from json file."""
 
-        results = self.__get_raw()
+        results = self._get_raw()
         to_remove_index = next(
             (
                 index
@@ -181,7 +182,7 @@ class PreviousConfigs:
         if to_remove_index is not None:
             results.pop(to_remove_index)
 
-            with open(self.json_file, "w") as f_:
+            with open(JSON_CONFIG_FILE, "w") as f_:
                 f_.write(json.dumps(results))
 
     def save(self, to_save: SavedRanges) -> None:
@@ -193,10 +194,10 @@ class PreviousConfigs:
 
         self.remove()
 
-        results = self.__get_raw()
+        results = self._get_raw()
         results.append(asdict(to_save))
 
-        with open(self.json_file, "w") as f_:
+        with open(JSON_CONFIG_FILE, "w") as f_:
             f_.write(json.dumps(results))
 
     def get(self) -> SavedRanges | None:
@@ -206,7 +207,7 @@ class PreviousConfigs:
             SavedRanges | None: Save ranges.
         """
 
-        results = self.__get_raw()
+        results = self._get_raw()
 
         for result in results:
             if self.__ranges_exist(result):
