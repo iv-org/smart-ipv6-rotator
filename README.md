@@ -1,4 +1,8 @@
-# Requirements
+# Smart IPv6 Rotator
+
+Smart IPv6 Rotator is a command-line tool designed to rotate IPv6 addresses for specific subnets, enabling users to bypass restrictions on IPv6-enabled websites.
+
+## Requirements
 - IPv6 on your server
 - Invidious works in IPv6
 - Install these two python packages:
@@ -7,8 +11,7 @@
 - Your provider need to allow you to assign any arbitrary IPv6 address, your IPv6 space must be fully routed.  
   Usually the case but some do not support it like the popular cloud providers: AWS, Google Cloud, Oracle Cloud, Azure and more.
 
-# How to setup (very simple tutorial)
-
+## How to setup (very simple tutorial for Google)
 Full detailed documentation: https://docs.invidious.io/ipv6-rotator/
 
 1. Git clone the repository somewhere.
@@ -23,39 +26,103 @@ Full detailed documentation: https://docs.invidious.io/ipv6-rotator/
    ```  
    The `sleep` command is used in case your network takes too much time time to be ready.
 
-# Docker image
-
+## Docker image
 https://quay.io/repository/invidious/smart-ipv6-rotator
 
-# How to clean the configuration done by the script
+## How to clean the configuration done by the script
 ```
 sudo python smart-ipv6-rotator.py clean
 ```
 
 Only works if the script did not crash. But in case of a crash, in most case the system should auto rollback the changes.
 
-# Why does this need root privileges?
+## Usage
+
+```plaintext
+smart-ipv6-rotator.py [-h] {run,clean-one,clean} ...
+```
+
+### Options
+
+- `-h, --help`: Display the help message and exit.
+
+### Subcommands
+
+1. `run`: Run the IPv6 rotator process.
+2. `clean-one`: Clean your system for a given service / IPv6 ranges.
+3. `clean`: Clean all configurations made by this script.
+
+---
+
+### `run` Subcommand
+
+```plaintext
+smart-ipv6-rotator.py run [-h] [--services {google}] [--external-ipv6-ranges EXTERNAL_IPV6_RANGES] [--skip-root] [--no-services] --ipv6range IPV6RANGE
+```
+
+#### Options
+
+- `-h, --help`: Display the help message and exit.
+- `--services {google}`: Define IPV6 ranges of popular services (e.g., --services google, twitter).
+- `--external-ipv6-ranges EXTERNAL_IPV6_RANGES`: Manually define external IPV6 ranges to rotate for.
+- `--skip-root`: Skip root check.
+- `--no-services`: Completely disable the --services flag.
+- `--ipv6range IPV6RANGE`: Your IPV6 range (e.g., 2407:7000:9827:4100::/64).
+
+---
+
+### `clean` Subcommand
+
+```plaintext
+smart-ipv6-rotator.py clean [-h] [--skip-root]
+```
+
+#### Options
+
+- `-h, --help`: Display the help message and exit.
+- `--skip-root`: Skip root check.
+
+---
+
+### `clean-one` Subcommand
+
+```plaintext
+smart-ipv6-rotator.py clean-one [-h] [--services {google}] [--external-ipv6-ranges EXTERNAL_IPV6_RANGES] [--skip-root] [--no-services]
+```
+
+#### Options
+
+- `-h, --help`: Display the help message and exit.
+- `--services {google}`: Define IPV6 ranges of popular services (e.g., --services google, twitter).
+- `--external-ipv6-ranges EXTERNAL_IPV6_RANGES`: Manually define external IPV6 ranges to rotate for.
+- `--skip-root`: Skip root check.
+- `--no-services`: Completely disable the --services flag.
+
+---
+
+
+## Why does this need root privileges?
 
 You can only modify the network configuration of your server using root privileges.  
 The attack surface of this script is very limited as it is not running in the background, it's a one shot script.
 
-# How does this script work?
+## How does this script work?
 1. First it check that you have IPv6 connectivity.
 2. It automatically find the default IPv6 gateway and automatically generate a random IPv6 address from the IPv6 subnet that you configured.
 3. It adds the random IPv6 address to the network interface.
 4. It configures route for only using that new random IPv6 address for the specific IPv6 subnets (Google ipv6 ranges by default).  
    This way your current ipv6 network configuration is untouched and any change done by the script is temporary.
 
-# TODO (priority)
-## High
+## TODO (priority)
+### High
 - [x] Docker image for easier use.
-- [ ] Allow to configure your IPv6 subnets yourself. (Could be used for other projects)
+- [x] Allow to configure your IPv6 subnets yourself. (Could be used for other projects)
 - [x] Better handle in case of errors in configuring IPv6 routes. Rollback the changes automatically
 - [ ] Allow to specify a specific network interface + ipv6 gateway instead of automatically discovering it.
-## Medium
+### Medium
 - [ ] Arg for spit out the IPv6 subnet of the current default ipv6 address instead of saying to use gestioip.net tool.
 - [ ] In most time, adding the new random IPv6 will take precedence over the existing IPv6. This may not be the expected behavior.
-## Low
+### Low
 - [ ] Argument for testing if the setup will work without permanently do any modification.
 - [ ] Allow to remove debug info
 - [ ] Maybe not depend on icanhazip? Send requests in HTTPS?
