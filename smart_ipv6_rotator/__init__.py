@@ -220,6 +220,7 @@ def clean_one(
     clean_ranges(what_ranges(services, external_ipv6_ranges, no_services), skip_root)
 
 
+@parse_args
 def clean(
     skip_root: bool = False,
 ) -> None:
