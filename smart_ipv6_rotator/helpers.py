@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from dataclasses import asdict
 from time import sleep
 from typing import Iterator
@@ -13,20 +14,16 @@ from smart_ipv6_rotator.ranges import RANGES
 
 def root_check(skip_root: bool = False) -> None:
     if os.geteuid() != 0 and not skip_root:
-        raise Exception(
-            "[Error] Please run this script as root! It needs root privileges."
-        )
+        sys.exit("[Error] Please run this script as root! It needs root privileges.")
 
 
 def check_ipv6_connectivity() -> None:
     try:
         requests.get("http://ipv6.icanhazip.com", timeout=5)
     except requests.Timeout:
-        raise Exception(
-            "[Error] You do not have IPv6 connectivity. This script can not work."
-        )
+        sys.exit("[Error] You do not have IPv6 connectivity. This script can not work.")
     except requests.HTTPError:
-        raise Exception(
+        sys.exit(
             "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
         )
 
@@ -45,9 +42,6 @@ def what_ranges(
         ipv6_ranges (str | None, optional): Defaults to None.
         no_services (bool, optional): Default to False
 
-    Raises:
-        Exception: Invalid params
-
     Returns:
         list[str]: IPV6 ranges
     """
@@ -57,7 +51,7 @@ def what_ranges(
     if services and not no_services:
         for service in services.split(","):
             if service not in RANGES:
-                raise Exception(f"{service} isn't a valid service.")
+                sys.exit(f"{service} isn't a valid service.")
 
             ranges_ += list(RANGES[service])
 
@@ -65,7 +59,7 @@ def what_ranges(
         ranges_ += ipv6_ranges.split(",")
 
     if not ranges_:
-        raise Exception("No service or ranges given.")
+        sys.exit("No service or ranges given.")
 
     return list(set(ranges_))
 
@@ -80,11 +74,7 @@ def clean_ipv6_check(config: SavedRanges) -> None:
             oif=config.interface_index,
         )
     except:
-        print(
-            """[Error] Failed to remove the test IPv6 subnet.
-            May be expected if the route were not yet configured and that was a cleanup due to an error.
-            """
-        )
+        pass
 
 
 def clean_ranges(ranges_: list[str], skip_root: bool) -> None:

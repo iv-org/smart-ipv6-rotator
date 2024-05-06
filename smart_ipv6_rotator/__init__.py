@@ -1,13 +1,20 @@
 import argparse
+import sys
 from dataclasses import asdict
 from ipaddress import IPv6Address, IPv6Network
+from os import path
 from random import choice, getrandbits, seed
 from time import sleep
 from typing import Any, Callable
 
 import requests
 
-from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IP, IPROUTE
+from smart_ipv6_rotator.const import (
+    ICANHAZIP_IPV6_ADDRESS,
+    IP,
+    IPROUTE,
+    LEGACY_CONFIG_FILE,
+)
 from smart_ipv6_rotator.helpers import (
     PreviousConfig,
     SavedRanges,
@@ -75,6 +82,11 @@ def run(
 ) -> None:
     """Run the IPv6 rotator process."""
 
+    if path.exists(LEGACY_CONFIG_FILE):
+        sys.exit(
+            "[ERROR] Legacy database format detected! Please run `python smart-ipv6-rotator.py clean` using the old version of this script.\nhttps://github.com/iv-org/smart-ipv6-rotator"
+        )
+
     root_check(skip_root)
     check_ipv6_connectivity()
 
@@ -122,7 +134,7 @@ def run(
         )
     except Exception as error:
         clean_ranges(service_ranges, skip_root)
-        raise Exception(
+        sys.exit(
             "[Error] Failed to add the new random IPv6 address. The setup did not work!\n"
             "        That's unexpected! Did you correctly configure the IPv6 subnet to use?\n"
             f"       Exception:\n{error}"
@@ -141,7 +153,7 @@ def run(
         )
     except Exception as error:
         clean_ranges(service_ranges, skip_root)
-        raise Exception(
+        sys.exit(
             "[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
             f"       Exception:\n{error}"
         )
@@ -156,7 +168,7 @@ def run(
         )
     except requests.exceptions.RequestException as error:
         clean_ranges(service_ranges, skip_root)
-        raise Exception(
+        sys.exit(
             "[ERROR] Failed to send the request for checking the new IPv6 address! The setup did not work!\n"
             "        Your provider probably does not allow setting any arbitrary IPv6 address.\n"
             "        Or did you correctly configure the IPv6 subnet to use?\n"
@@ -167,7 +179,7 @@ def run(
         check_new_ipv6_address.raise_for_status()
     except requests.HTTPError:
         clean_ranges(service_ranges, skip_root)
-        raise Exception(
+        sys.exit(
             "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
         )
 
@@ -176,7 +188,7 @@ def run(
         print("[INFO] Correctly using the new random IPv6 address, continuing.")
     else:
         clean_ranges(service_ranges, skip_root)
-        raise Exception(
+        sys.exit(
             "[ERROR] The new random IPv6 is not used! The setup did not work!\n"
             "        That is very unexpected, check if your IPv6 routes do not have too much priority."
             f"       Address used: {response_new_ipv6_address}"
@@ -196,7 +208,7 @@ def run(
             )
     except Exception as error:
         clean_ranges(service_ranges, skip_root)
-        raise Exception(
+        sys.exit(
             f"[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
             f"        Exception:\n{error}"
         )
