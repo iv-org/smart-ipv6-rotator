@@ -2,10 +2,12 @@ import json
 import os
 import sys
 from dataclasses import asdict
+from requests.adapters import HTTPAdapter
 from time import sleep
 from typing import Iterator
 
 import requests
+from requests.adapters import HTTPAdapter
 
 from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IPROUTE, JSON_CONFIG_FILE
 from smart_ipv6_rotator.models import SavedRanges
@@ -19,7 +21,9 @@ def root_check(skip_root: bool = False) -> None:
 
 def check_ipv6_connectivity() -> None:
     try:
-        requests.get("http://ipv6.icanhazip.com", timeout=5)
+        s = requests.Session()
+        s.mount('http://', HTTPAdapter(max_retries=3))
+        s.get("http://ipv6.icanhazip.com", timeout=10)
     except requests.Timeout:
         sys.exit("[Error] You do not have IPv6 connectivity. This script can not work.")
     except requests.HTTPError:
