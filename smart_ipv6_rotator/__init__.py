@@ -267,7 +267,7 @@ def main() -> None:
     run_parser.add_argument(
         "--cron",
         action="store_true",
-        help="Disable useless checks when being instantiated by CRON.",
+        help="Disable checks for IPV6 address configured. Useful when being instantiated by CRON and the IPv6 range configured is correct.",
         required=False,
     )
     run_parser.set_defaults(func=run)
