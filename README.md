@@ -71,6 +71,7 @@ smart-ipv6-rotator.py run [-h] [--services {google}] [--external-ipv6-ranges EXT
 - `--skip-root`: Skip root check.
 - `--no-services`: Completely disable the --services flag.
 - `--ipv6range IPV6RANGE`: Your IPV6 range (e.g., 2407:7000:9827:4100::/64).
+- `--cron`: Do not check if the IPv6 address configured will work properly. Useful for CRON and when you know that the IPv6 range is correct.
 
 ---
 

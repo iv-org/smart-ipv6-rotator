@@ -58,13 +58,6 @@ SHARED_OPTIONS = [
             "help": "Completely disables the --services flag.",
         },
     ),
-    (
-        "--cron",
-        {
-            "action": "store_true",
-            "help": "Disable useless checks when being instantiated by CRON.",
-        },
-    ),
 ]
 
 
@@ -94,6 +87,9 @@ def run(
         sys.exit(
             "[ERROR] Legacy database format detected! Please run `python smart-ipv6-rotator.py clean` using the old version of this script.\nhttps://github.com/iv-org/smart-ipv6-rotator"
         )
+
+    if cron is True:
+        print("[INFO] Running without checking if the IPv6 address configured will work properly.")
 
     root_check(skip_root)
     check_ipv6_connectivity()
@@ -150,7 +146,7 @@ def run(
 
     sleep(2)  # Need so that the linux kernel takes into account the new ipv6 route
 
-    if cron == False:
+    if cron is False:
 
         try:
             IPROUTE.route(
@@ -267,6 +263,12 @@ def main() -> None:
         "--ipv6range",
         help="Your IPV6 range. Example: 2407:7000:9827:4100::/64",
         required=True,
+    )
+    run_parser.add_argument(
+        "--cron",
+        action="store_true",
+        help="Disable useless checks when being instantiated by CRON.",
+        required=False,
     )
     run_parser.set_defaults(func=run)
 
