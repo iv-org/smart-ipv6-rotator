@@ -24,8 +24,8 @@ Full detailed documentation: https://docs.invidious.io/ipv6-rotator/
    Twice a day (noon and midnight) is enough for YouTube servers. Also at the reboot of the server!  
    Example crontab (`crontab -e -u root`):
    ```
-   @reboot sleep 30s && python smart-ipv6-rotator.py run --ipv6range=YOURIPV6SUBNET/64
-   0 */12 * * * python smart-ipv6-rotator.py run --ipv6range=YOURIPV6SUBNET/64
+   @reboot sleep 30s && python smart-ipv6-rotator.py run --cron --ipv6range=YOURIPV6SUBNET/64
+   0 */12 * * * python smart-ipv6-rotator.py run --cron --ipv6range=YOURIPV6SUBNET/64
    ```  
    The `sleep` command is used in case your network takes too much time time to be ready.
 
@@ -71,6 +71,7 @@ smart-ipv6-rotator.py run [-h] [--services {google}] [--external-ipv6-ranges EXT
 - `--skip-root`: Skip root check.
 - `--no-services`: Completely disable the --services flag.
 - `--ipv6range IPV6RANGE`: Your IPV6 range (e.g., 2407:7000:9827:4100::/64).
+- `--cron`: Do not check if the IPv6 address configured will work properly. Useful for CRON and when you know that the IPv6 range is correct.
 
 ---
 

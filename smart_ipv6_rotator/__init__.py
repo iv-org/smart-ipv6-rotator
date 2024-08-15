@@ -79,6 +79,7 @@ def run(
     services: str | None = None,
     external_ipv6_ranges: str | None = None,
     no_services: bool = False,
+    cron: bool = False,
 ) -> None:
     """Run the IPv6 rotator process."""
 
@@ -86,6 +87,9 @@ def run(
         sys.exit(
             "[ERROR] Legacy database format detected! Please run `python smart-ipv6-rotator.py clean` using the old version of this script.\nhttps://github.com/iv-org/smart-ipv6-rotator"
         )
+
+    if cron is True:
+        print("[INFO] Running without checking if the IPv6 address configured will work properly.")
 
     root_check(skip_root)
     check_ipv6_connectivity()
@@ -142,59 +146,61 @@ def run(
 
     sleep(2)  # Need so that the linux kernel takes into account the new ipv6 route
 
-    try:
-        IPROUTE.route(
-            "add",
-            dst=ICANHAZIP_IPV6_ADDRESS,
-            prefsrc=random_ipv6_address,
-            gateway=default_interface_gateway,
-            oif=default_interface_index,
-            priority=1,
-        )
-    except Exception as error:
-        clean_ranges(service_ranges, skip_root)
-        sys.exit(
-            "[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
-            f"       Exception:\n{error}"
-        )
+    if cron is False:
 
-    sleep(2)
+        try:
+            IPROUTE.route(
+                "add",
+                dst=ICANHAZIP_IPV6_ADDRESS,
+                prefsrc=random_ipv6_address,
+                gateway=default_interface_gateway,
+                oif=default_interface_index,
+                priority=1,
+            )
+        except Exception as error:
+            clean_ranges(service_ranges, skip_root)
+            sys.exit(
+                "[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
+                f"       Exception:\n{error}"
+            )
 
-    try:
-        check_new_ipv6_address = requests.get(
-            f"http://[{ICANHAZIP_IPV6_ADDRESS}]",
-            headers={"host": "ipv6.icanhazip.com"},
-            timeout=5,
-        )
-    except requests.exceptions.RequestException as error:
-        clean_ranges(service_ranges, skip_root)
-        sys.exit(
-            "[ERROR] Failed to send the request for checking the new IPv6 address! The setup did not work!\n"
-            "        Your provider probably does not allow setting any arbitrary IPv6 address.\n"
-            "        Or did you correctly configure the IPv6 subnet to use?\n"
-            f"       Exception:\n{error}"
-        )
+        sleep(4)
 
-    try:
-        check_new_ipv6_address.raise_for_status()
-    except requests.HTTPError:
-        clean_ranges(service_ranges, skip_root)
-        sys.exit(
-            "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
-        )
+        try:
+            check_new_ipv6_address = requests.get(
+                f"http://[{ICANHAZIP_IPV6_ADDRESS}]",
+                headers={"host": "ipv6.icanhazip.com"},
+                timeout=5,
+            )
+        except requests.exceptions.RequestException as error:
+            clean_ranges(service_ranges, skip_root)
+            sys.exit(
+                "[ERROR] Failed to send the request for checking the new IPv6 address! The setup did not work!\n"
+                "        Your provider probably does not allow setting any arbitrary IPv6 address.\n"
+                "        Or did you correctly configure the IPv6 subnet to use?\n"
+                f"       Exception:\n{error}"
+            )
 
-    response_new_ipv6_address = check_new_ipv6_address.text.strip()
-    if response_new_ipv6_address == random_ipv6_address:
-        print("[INFO] Correctly using the new random IPv6 address, continuing.")
-    else:
-        clean_ranges(service_ranges, skip_root)
-        sys.exit(
-            "[ERROR] The new random IPv6 is not used! The setup did not work!\n"
-            "        That is very unexpected, check if your IPv6 routes do not have too much priority."
-            f"       Address used: {response_new_ipv6_address}"
-        )
+        try:
+            check_new_ipv6_address.raise_for_status()
+        except requests.HTTPError:
+            clean_ranges(service_ranges, skip_root)
+            sys.exit(
+                "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
+            )
 
-    clean_ipv6_check(saved_ranges)
+        response_new_ipv6_address = check_new_ipv6_address.text.strip()
+        if response_new_ipv6_address == random_ipv6_address:
+            print("[INFO] Correctly using the new random IPv6 address, continuing.")
+        else:
+            clean_ranges(service_ranges, skip_root)
+            sys.exit(
+                "[ERROR] The new random IPv6 is not used! The setup did not work!\n"
+                "        That is very unexpected, check if your IPv6 routes do not have too much priority."
+                f"       Address used: {response_new_ipv6_address}"
+            )
+
+        clean_ipv6_check(saved_ranges)
 
     try:
         for ipv6_range in service_ranges:
@@ -209,7 +215,7 @@ def run(
     except Exception as error:
         clean_ranges(service_ranges, skip_root)
         sys.exit(
-            f"[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
+            f"[Error] Failed to configure the service IPv6 route. The setup did not work!\n"
             f"        Exception:\n{error}"
         )
 
@@ -257,6 +263,12 @@ def main() -> None:
         "--ipv6range",
         help="Your IPV6 range. Example: 2407:7000:9827:4100::/64",
         required=True,
+    )
+    run_parser.add_argument(
+        "--cron",
+        action="store_true",
+        help="Disable checks for IPV6 address configured. Useful when being instantiated by CRON and the IPv6 range configured is correct.",
+        required=False,
     )
     run_parser.set_defaults(func=run)
 
