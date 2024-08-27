@@ -2,14 +2,18 @@ import json
 import os
 import sys
 from dataclasses import asdict
-from requests.adapters import HTTPAdapter
 from time import sleep
 from typing import Iterator
 
 import requests
 from requests.adapters import HTTPAdapter
 
-from smart_ipv6_rotator.const import ICANHAZIP_IPV6_ADDRESS, IPROUTE, JSON_CONFIG_FILE
+from smart_ipv6_rotator.const import (
+    ICANHAZIP_IPV6_ADDRESS,
+    IPROUTE,
+    JSON_CONFIG_FILE,
+    LOGGER,
+)
 from smart_ipv6_rotator.models import SavedRanges
 from smart_ipv6_rotator.ranges import RANGES
 
@@ -22,16 +26,18 @@ def root_check(skip_root: bool = False) -> None:
 def check_ipv6_connectivity() -> None:
     try:
         s = requests.Session()
-        s.mount('http://', HTTPAdapter(max_retries=3))
+        s.mount("http://", HTTPAdapter(max_retries=3))
         s.get("http://ipv6.icanhazip.com", timeout=10)
     except requests.Timeout:
-        sys.exit("[Error] You do not have IPv6 connectivity. This script can not work.")
+        LOGGER.error("You do not have IPv6 connectivity. This script can not work.")
+        sys.exit()
     except requests.HTTPError:
-        sys.exit(
-            "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
+        LOGGER.error(
+            "icanhazip didn't return the expected status, possibly they are down right now."
         )
+        sys.exit()
 
-    print("[INFO] You have IPv6 connectivity. Continuing.")
+    LOGGER.info("You have IPv6 connectivity. Continuing.")
 
 
 def what_ranges(
@@ -95,7 +101,7 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
 
     previous = previous_config.get()
     if not previous:
-        print("[INFO] No cleanup of previous setup needed.")
+        LOGGER.info("No cleanup of previous setup needed.")
         return
 
     clean_ipv6_check(previous)
@@ -110,12 +116,11 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
                 oif=previous.interface_index,
             )
     except:
-        print(
-            f"""[Error]  Failed to remove the configured IPv6 subnets {','.join(previous.ranges)}
+        LOGGER.error(
+            f"""Failed to remove the configured IPv6 subnets {','.join(previous.ranges)}
             May be expected if the route were not yet configured and that was a cleanup due to an error
             """
         )
-
     try:
         IPROUTE.addr(
             "del",
@@ -124,12 +129,12 @@ def clean_ranges(ranges_: list[str], skip_root: bool) -> None:
             mask=previous.random_ipv6_address_mask,
         )
     except:
-        print("[Error] Failed to remove the random IPv6 address, very unexpected!")
+        LOGGER.error("Failed to remove the random IPv6 address, very unexpected!")
 
     previous_config.remove()
 
-    print(
-        "[INFO] Finished cleaning up previous setup.\n[INFO] Waiting for the propagation in the Linux kernel."
+    LOGGER.info(
+        "Finished cleaning up previous setup.\nWaiting for the propagation in the Linux kernel."
     )
 
     sleep(6)

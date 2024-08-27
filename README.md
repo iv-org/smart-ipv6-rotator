@@ -128,5 +128,5 @@ The attack surface of this script is very limited as it is not running in the ba
 - [ ] In most time, adding the new random IPv6 will take precedence over the existing IPv6. This may not be the expected behavior.
 ### Low
 - [ ] Argument for testing if the setup will work without permanently do any modification.
-- [ ] Allow to remove debug info
+- [X] Allow to remove debug info
 - [ ] Maybe not depend on icanhazip? Send requests in HTTPS?

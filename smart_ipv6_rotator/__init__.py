@@ -1,4 +1,5 @@
 import argparse
+import logging
 import sys
 from dataclasses import asdict
 from ipaddress import IPv6Address, IPv6Network
@@ -14,6 +15,8 @@ from smart_ipv6_rotator.const import (
     IP,
     IPROUTE,
     LEGACY_CONFIG_FILE,
+    LOG_LEVELS_NAMES,
+    LOGGER,
 )
 from smart_ipv6_rotator.helpers import (
     PreviousConfig,
@@ -58,14 +61,30 @@ SHARED_OPTIONS = [
             "help": "Completely disables the --services flag.",
         },
     ),
+    (
+        "--log-level",
+        {
+            "type": str,
+            "choices": LOG_LEVELS_NAMES,
+            "default": "DEBUG",
+            "help": f"Sets log level, can be {','.join(LOG_LEVELS_NAMES)}",
+        },
+    ),
 ]
 
+logging.basicConfig(format="%(levelname)s:%(name)s:%(message)s")
 
-def parse_args(func) -> Callable[..., Any]:
+
+def parse_args(func: Callable) -> Callable[..., Any]:
     def _parse_args(namespace: argparse.Namespace) -> Any:
         params = dict(namespace.__dict__)
         params.pop("subcommand")
         params.pop("func")
+
+        if "log_level" in params:
+            print(params["log_level"])
+            LOGGER.setLevel(params["log_level"])
+            params.pop("log_level")
 
         return func(**params)
 
@@ -84,12 +103,15 @@ def run(
     """Run the IPv6 rotator process."""
 
     if path.exists(LEGACY_CONFIG_FILE):
-        sys.exit(
-            "[ERROR] Legacy database format detected! Please run `python smart-ipv6-rotator.py clean` using the old version of this script.\nhttps://github.com/iv-org/smart-ipv6-rotator"
+        LOGGER.error(
+            "Legacy database format detected! Please run `python smart-ipv6-rotator.py clean` using the old version of this script.\nhttps://github.com/iv-org/smart-ipv6-rotator"
         )
+        sys.exit()
 
     if cron is True:
-        print("[INFO] Running without checking if the IPv6 address configured will work properly.")
+        LOGGER.info(
+            "Running without checking if the IPv6 address configured will work properly."
+        )
 
     root_check(skip_root)
     check_ipv6_connectivity()
@@ -125,9 +147,9 @@ def run(
     # Save config now, will be cleaned if errors raised.
     PreviousConfig(service_ranges).save(saved_ranges)
 
-    print("[DEBUG] Debug info:")
+    LOGGER.debug("Debug info:")
     for key, value in asdict(saved_ranges).items():
-        print(f"{key} --> {value}")
+        LOGGER.debug(f"{key} --> {value}")
 
     try:
         IPROUTE.addr(
@@ -138,11 +160,12 @@ def run(
         )
     except Exception as error:
         clean_ranges(service_ranges, skip_root)
-        sys.exit(
-            "[Error] Failed to add the new random IPv6 address. The setup did not work!\n"
-            "        That's unexpected! Did you correctly configure the IPv6 subnet to use?\n"
-            f"       Exception:\n{error}"
+        LOGGER.error(
+            "Failed to add the new random IPv6 address. The setup did not work!\n"
+            "That's unexpected! Did you correctly configure the IPv6 subnet to use?\n"
+            f"Exception:\n{error}"
         )
+        sys.exit()
 
     sleep(2)  # Need so that the linux kernel takes into account the new ipv6 route
 
@@ -159,10 +182,11 @@ def run(
             )
         except Exception as error:
             clean_ranges(service_ranges, skip_root)
-            sys.exit(
-                "[Error] Failed to configure the test IPv6 route. The setup did not work!\n"
+            LOGGER.error(
+                "Failed to configure the test IPv6 route. The setup did not work!\n"
                 f"       Exception:\n{error}"
             )
+            sys.exit()
 
         sleep(4)
 
@@ -174,31 +198,34 @@ def run(
             )
         except requests.exceptions.RequestException as error:
             clean_ranges(service_ranges, skip_root)
-            sys.exit(
-                "[ERROR] Failed to send the request for checking the new IPv6 address! The setup did not work!\n"
-                "        Your provider probably does not allow setting any arbitrary IPv6 address.\n"
-                "        Or did you correctly configure the IPv6 subnet to use?\n"
-                f"       Exception:\n{error}"
+            LOGGER.error(
+                "Failed to send the request for checking the new IPv6 address! The setup did not work!\n"
+                "Your provider probably does not allow setting any arbitrary IPv6 address.\n"
+                "Or did you correctly configure the IPv6 subnet to use?\n"
+                f"Exception:\n{error}"
             )
+            sys.exit()
 
         try:
             check_new_ipv6_address.raise_for_status()
         except requests.HTTPError:
             clean_ranges(service_ranges, skip_root)
-            sys.exit(
-                "[ERROR] icanhazip didn't return the expected status, possibly they are down right now."
+            LOGGER.error(
+                "icanhazip didn't return the expected status, possibly they are down right now."
             )
+            sys.exit()
 
         response_new_ipv6_address = check_new_ipv6_address.text.strip()
         if response_new_ipv6_address == random_ipv6_address:
-            print("[INFO] Correctly using the new random IPv6 address, continuing.")
+            LOGGER.info("Correctly using the new random IPv6 address, continuing.")
         else:
             clean_ranges(service_ranges, skip_root)
-            sys.exit(
-                "[ERROR] The new random IPv6 is not used! The setup did not work!\n"
-                "        That is very unexpected, check if your IPv6 routes do not have too much priority."
-                f"       Address used: {response_new_ipv6_address}"
+            LOGGER.error(
+                "The new random IPv6 is not used! The setup did not work!\n"
+                "That is very unexpected, check if your IPv6 routes do not have too much priority."
+                f"Address used: {response_new_ipv6_address}"
             )
+            sys.exit()
 
         clean_ipv6_check(saved_ranges)
 
@@ -214,15 +241,17 @@ def run(
             )
     except Exception as error:
         clean_ranges(service_ranges, skip_root)
-        sys.exit(
-            f"[Error] Failed to configure the service IPv6 route. The setup did not work!\n"
-            f"        Exception:\n{error}"
+        LOGGER.error(
+            f"Failed to configure the service IPv6 route. The setup did not work!\n"
+            f"Exception:\n{error}"
         )
+        sys.exit()
 
-    print(
-        f"[INFO] Correctly configured the IPv6 routes for IPv6 ranges {service_ranges}.\n"
-        "[INFO] Successful setup. Waiting for the propagation in the Linux kernel."
+    LOGGER.info(
+        f"Correctly configured the IPv6 routes for IPv6 ranges {service_ranges}.\n"
+        "Successful setup. Waiting for the propagation in the Linux kernel."
     )
+
     sleep(6)
 
 
