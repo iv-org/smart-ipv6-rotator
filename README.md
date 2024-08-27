@@ -72,6 +72,7 @@ smart-ipv6-rotator.py run [-h] [--services {google}] [--external-ipv6-ranges EXT
 - `--no-services`: Completely disable the --services flag.
 - `--ipv6range IPV6RANGE`: Your IPV6 range (e.g., 2407:7000:9827:4100::/64).
 - `--cron`: Do not check if the IPv6 address configured will work properly. Useful for CRON and when you know that the IPv6 range is correct.
+- `--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}`: Sets log level
 
 ---
 
@@ -85,6 +86,7 @@ smart-ipv6-rotator.py clean [-h] [--skip-root]
 
 - `-h, --help`: Display the help message and exit.
 - `--skip-root`: Skip root check.
+- `--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}`: Sets log level
 
 ---
 
@@ -101,6 +103,7 @@ smart-ipv6-rotator.py clean-one [-h] [--services {google}] [--external-ipv6-rang
 - `--external-ipv6-ranges EXTERNAL_IPV6_RANGES`: Manually define external IPV6 ranges to rotate for.
 - `--skip-root`: Skip root check.
 - `--no-services`: Completely disable the --services flag.
+- `--log-level {CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}`: Sets log level
 
 ---
 
