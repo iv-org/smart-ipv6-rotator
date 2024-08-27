@@ -65,7 +65,8 @@ SHARED_OPTIONS = [
         "--log-level",
         {
             "type": str,
-            "choices": LOG_LEVELS_NAMES,
+            "choices": LOG_LEVELS_NAMES
+            + [log_level.lower() for log_level in LOG_LEVELS_NAMES],
             "default": "DEBUG",
             "help": f"Sets log level, can be {','.join(LOG_LEVELS_NAMES)}",
         },
@@ -82,8 +83,7 @@ def parse_args(func: Callable) -> Callable[..., Any]:
         params.pop("func")
 
         if "log_level" in params:
-            print(params["log_level"])
-            LOGGER.setLevel(params["log_level"])
+            LOGGER.setLevel(params["log_level"].upper())
             params.pop("log_level")
 
         return func(**params)
