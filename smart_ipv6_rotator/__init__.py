@@ -99,6 +99,8 @@ def run(
     external_ipv6_ranges: str | None = None,
     no_services: bool = False,
     cron: bool = False,
+    interface: str | None = None,
+    gateway: str | None = None,
 ) -> None:
     """Run the IPv6 rotator process."""
 
@@ -129,10 +131,24 @@ def run(
         )
     )
 
-    default_interface = IPROUTE.route("get", dst=choice(service_ranges))[0]  # type: ignore
-    default_interface_index = int(default_interface.get_attrs("RTA_OIF")[0])
-    default_interface_gateway = str(default_interface.get_attrs("RTA_GATEWAY")[0])
-    default_interface_name = IP.interfaces[default_interface_index]["ifname"]
+    if interface and gateway:
+        default_interface_name = interface
+        default_interface_gateway = gateway
+        
+        if interface not in IP.interfaces:
+            LOGGER.error(f"Specified interface '{interface}' not found.")
+            sys.exit()
+            
+        default_interface_index = IP.interfaces[interface]["index"]
+    else:
+        if interface or gateway:
+            LOGGER.error("Both --interface and --gateway must be specified together.")
+            sys.exit()
+            
+        default_interface = IPROUTE.route("get", dst=choice(service_ranges))[0]  # type: ignore
+        default_interface_index = int(default_interface.get_attrs("RTA_OIF")[0])
+        default_interface_gateway = str(default_interface.get_attrs("RTA_GATEWAY")[0])
+        default_interface_name = IP.interfaces[default_interface_index]["ifname"]
 
     saved_ranges = SavedRanges(
         random_ipv6_address=random_ipv6_address,
@@ -297,6 +313,16 @@ def main() -> None:
         "--cron",
         action="store_true",
         help="Disable checks for IPV6 address configured. Useful when being instantiated by CRON and the IPv6 range configured is correct.",
+        required=False,
+    )
+    run_parser.add_argument(
+        "--interface",
+        help="Specify the network interface to use.",
+        required=False,
+        )
+    run_parser.add_argument(
+        "--gateway",
+        help="Specify the IPv6 gateway to use.",
         required=False,
     )
     run_parser.set_defaults(func=run)

@@ -10,7 +10,8 @@ authors = [
     {name = "unixfox"},
     {name = "FireMasterK"},
     {name = "TheFrenchGhosty"},
-    {name = "WardPearce"}
+    {name = "WardPearce"},
+    {name = "vojkovic"}
 ]
 description = "IPv6 rotator for specific subnets - unblock restrictions on IPv6 enabled websites"
 readme = "README.md"
