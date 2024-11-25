@@ -68,6 +68,8 @@ smart-ipv6-rotator.py run [-h] [--services {google}] [--external-ipv6-ranges EXT
 - `-h, --help`: Display the help message and exit.
 - `--services {google}`: Define IPV6 ranges of popular services (e.g., --services google, twitter).
 - `--external-ipv6-ranges EXTERNAL_IPV6_RANGES`: Manually define external IPV6 ranges to rotate for.
+- `--gateway GATEWAY`: Manually define the gateway to use. Requires --interface.
+- `--interface INTERFACE`: Manually define the interface to use. (e.g., eth0) Requires --gateway.
 - `--skip-root`: Skip root check.
 - `--no-services`: Completely disable the --services flag.
 - `--ipv6range IPV6RANGE`: Your IPV6 range (e.g., 2407:7000:9827:4100::/64).
@@ -125,7 +127,7 @@ The attack surface of this script is very limited as it is not running in the ba
 - [x] Docker image for easier use.
 - [x] Allow to configure your IPv6 subnets yourself. (Could be used for other projects)
 - [x] Better handle in case of errors in configuring IPv6 routes. Rollback the changes automatically
-- [ ] Allow to specify a specific network interface + ipv6 gateway instead of automatically discovering it.
+- [x] Allow to specify a specific network interface + ipv6 gateway instead of automatically discovering it.
 ### Medium
 - [ ] Arg for spit out the IPv6 subnet of the current default ipv6 address instead of saying to use gestioip.net tool.
 - [ ] In most time, adding the new random IPv6 will take precedence over the existing IPv6. This may not be the expected behavior.
