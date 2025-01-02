@@ -6,6 +6,7 @@ Smart IPv6 Rotator is a command-line tool designed to rotate IPv6 addresses for 
 If you are already running this script, please run `sudo python smart-ipv6-rotator.py clean` before upgrading it to avoid any issues.
 
 ## Requirements
+- At least Python 3.9
 - IPv6 on your server
 - Invidious works in IPv6
 - Install these two python packages:
