@@ -67,7 +67,7 @@ smart-ipv6-rotator.py run [-h] [--services {google}] [--external-ipv6-ranges EXT
 #### Options
 
 - `-h, --help`: Display the help message and exit.
-- `--services {google}`: Define IPV6 ranges of popular services (e.g., --services google, twitter).
+- `--services {google}`: Define IPV6 ranges of popular services (e.g., --services google, twitter, reddit).
 - `--external-ipv6-ranges EXTERNAL_IPV6_RANGES`: Manually define external IPV6 ranges to rotate for.
 - `--skip-root`: Skip root check.
 - `--no-services`: Completely disable the --services flag.
