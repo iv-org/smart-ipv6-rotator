@@ -37,7 +37,7 @@ SHARED_OPTIONS = [
             "type": str,
             "choices": list(RANGES.keys()),
             "default": "google",
-            "help": "IPV6 ranges of popular services. Example: --services google,twitter",
+            "help": "IPV6 ranges of popular services. Example: --services google,twitter,reddit",
         },
     ),
     (
