@@ -101,6 +101,7 @@ def run(
     cron: bool = False,
     interface: str | None = None,
     gateway: str | None = None,
+    not_preferred: bool = False,
 ) -> None:
     """Run the IPv6 rotator process."""
 
@@ -114,6 +115,12 @@ def run(
         LOGGER.info(
             "Running without checking if the IPv6 address configured will work properly."
         )
+
+    if not_preferred is True:
+        preferred_value = 0
+    else:
+        # A value of None defaults to a preferred_lft of forever
+        preferred_value = None
 
     root_check(skip_root)
     check_ipv6_connectivity()
@@ -173,6 +180,7 @@ def run(
             index=default_interface_index,
             address=random_ipv6_address,
             mask=ipv6_network.prefixlen,
+            preferred=preferred_value,
         )
     except Exception as error:
         clean_ranges(service_ranges, skip_root)
@@ -323,6 +331,12 @@ def main() -> None:
     run_parser.add_argument(
         "--gateway",
         help="Specify the IPv6 gateway to use.",
+        required=False,
+    )
+    run_parser.add_argument(
+        "--not-preferred",
+        action="store_true",
+        help="Set the preferred_lft of the IPv6 address to 0.",
         required=False,
     )
     run_parser.set_defaults(func=run)
