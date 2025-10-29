@@ -170,7 +170,7 @@ def run(
     try:
         IPROUTE.addr(
             "add",
-            default_interface_index,
+            index=default_interface_index,
             address=random_ipv6_address,
             mask=ipv6_network.prefixlen,
         )
