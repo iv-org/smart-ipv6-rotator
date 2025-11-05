@@ -4,7 +4,7 @@ version = "1.0.0"
 requires-python = ">=3.9"
 dependencies = [
     "requests>=2.31.0",
-    "pyroute2==0.8.1",
+    "pyroute2>=0.9.1",
 ]
 authors = [
     {name = "unixfox"},
